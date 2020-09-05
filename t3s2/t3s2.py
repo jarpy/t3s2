@@ -1,11 +1,9 @@
 import logging
-import pyttsx3 # type: ignore
-import socket # type: ignore
-import sys
+import pyttsx3  # type: ignore
+import socket  # type: ignore
 
-from pygtail import Pygtail # type: ignore
 from time import sleep
-from keyboard import press, release # type: ignore
+from keyboard import press, release  # type: ignore
 
 
 class Voice():
@@ -30,7 +28,7 @@ class Voice():
         """
         self.engine.say(text)
         self.engine.runAndWait()
-    
+
     def transmit(self, text: str, ptt_key: str = 'right ctrl'):
         """Speak the given text and transmit it over SRS.
 
@@ -45,15 +43,10 @@ class Voice():
         self.say(text)
         release(ptt_key)
 
-# while True:
-#     for line in Pygtail(dcs_log):
-#         sys.stdout.write(line)
-#         if 'SAY=' in line:
-#             engine.say(line.split('SAY=')[-1])
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
-    
+
     listener = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     listener.bind(('', 10259))
     listener.listen(6)
@@ -63,14 +56,14 @@ if __name__ == '__main__':
     while True:
         client_connection, client_address = listener.accept()
         payload = bytearray()
-        
+
         while True:
             packet = client_connection.recv(1500)
             if not packet:
                 client_connection.close()
                 break
             payload.extend(packet)
-        
+
         if payload:
             text = payload.decode()
             logging.info(f'text={text}')
