@@ -7,10 +7,11 @@ from time import sleep
 from keyboard import press, release  # type: ignore
 
 
-def translate(text):
+def translate(text: str):
+    # Say "point zero zero" or "decimal zero zero" is not good brevity.
     text = text.replace('.00', '')
 
-    # Use correct phonetic for decimal numbers.
+    # Use correct phonetic for the decimal point.
     decimal_re = re.compile(r'(\d)[.](\d)')
     text = decimal_re.sub(r'\1 decimal \2', text)
 
@@ -22,14 +23,13 @@ def translate(text):
     # "fifteen".
     for num in [str(n) for n in range(10)]:
         text = text.replace(num, f'{num} ')
-
     text = text.replace(' 9 ', ' niner ')
 
+    # Fix up some words that are specific to the MIST and MEDEVAC scripts.
     text = text.replace(' gnd ', ' ground ')
     text = text.replace('RPG', 'ah-peejee')
     text = text.replace('LZ', 'ell-zee')
     text = text.replace('Fly heading', 'Flyheading')
-
     text = text.replace(' medevac ', ' meddivack ')
     text = text.replace('KHz', 'kilohertz')
     text = text.replace('MHz', 'megahertz')
@@ -68,9 +68,6 @@ class Voice():
         In reality this just holds down a keyboard key in order to "key" the
         SRS microphone while speaking, then releases the key. SRS must have
         "PTT" (push to talk) bound to this key.
-
-        Args:
-            text (str): The text to transmit.
         """
         press(ptt_key)
         self.say(text)
