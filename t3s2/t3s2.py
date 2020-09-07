@@ -1,9 +1,41 @@
 import logging
 import pyttsx3  # type: ignore
 import socket  # type: ignore
+import re
 
 from time import sleep
 from keyboard import press, release  # type: ignore
+
+
+def translate(text):
+    text = text.replace('.00', '')
+
+    # Use correct phonetic for decimal numbers.
+    decimal_re = re.compile(r'(\d)[.](\d)')
+    text = decimal_re.sub(r'\1 decimal \2', text)
+
+    # Rework bullseye coordinate calls.
+    bullseye_re = re.compile(r'bullseye (\d+) for (\d+) at (\d+)')
+    text = bullseye_re.sub(r'bullseye \1. range \2. altitude \3.', text)
+
+    # Put spaces between numerals so that the voice will say "one five" not
+    # "fifteen".
+    for num in [str(n) for n in range(10)]:
+        text = text.replace(num, f'{num} ')
+
+    text = text.replace(' 9 ', ' niner ')
+
+    text = text.replace(' gnd ', ' ground ')
+    text = text.replace('RPG', 'ah-peejee')
+    text = text.replace('LZ', 'ell-zee')
+    text = text.replace('Fly heading', 'Flyheading')
+
+    text = text.replace(' medevac ', ' meddivack ')
+    text = text.replace('KHz', 'kilohertz')
+    text = text.replace('MHz', 'megahertz')
+
+    logging.info(f"Tranlated: {text}")
+    return text
 
 
 class Voice():
@@ -26,10 +58,11 @@ class Voice():
         Args:
             text (str): The text to say.
         """
-        self.engine.say(text)
+        logging.info(f"Say: {text}")
+        self.engine.say(translate(text))
         self.engine.runAndWait()
 
-    def transmit(self, text: str, ptt_key: str = 'right ctrl'):
+    def transmit(self, text: str, ptt_key: str = r'right ctrl'):
         """Speak the given text and transmit it over SRS.
 
         In reality this just holds down a keyboard key in order to "key" the
@@ -51,7 +84,7 @@ if __name__ == '__main__':
     listener.bind(('', 10259))
     listener.listen(6)
 
-    voice = Voice("emma")
+    voice = Voice("amy", rate=140)
 
     while True:
         client_connection, client_address = listener.accept()
@@ -66,6 +99,6 @@ if __name__ == '__main__':
 
         if payload:
             text = payload.decode()
-            logging.info(f'text={text}')
+            logging.info(f'Payload: {text}')
             voice.transmit(text)
             sleep(0.1)
